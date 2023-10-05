@@ -48,15 +48,18 @@ def speech_to_text():
     r = sr.Recognizer()
     with sr.Microphone() as source:
         print("음성 명령을 기다리는 중...")
-        audio = r.listen(source)
-    try:
-        text = r.recognize_google(audio, language='ko-KR')
-        print("음성 명령: {}".format(text))
-        return text
-    except sr.UnknownValueError:
-        print("음성을 인식할 수 없습니다.")
-    except sr.RequestError as e:
-        print("Google Speech Recognition 서비스에서 오류 발생; {0}".format(e))
+        try:
+            audio = r.listen(source, timeout=5)  # 5초 동안 음성을 대기하고 자동으로 종료
+            text = r.recognize_google(audio, language='ja-JP')
+            print("음성 명령: {}".format(text))
+            return text
+        except sr.WaitTimeoutError:
+            print("시간 초과: 음성 입력이 없습니다.")
+        except sr.UnknownValueError:
+            print("음성을 인식할 수 없습니다.")
+        except sr.RequestError as e:
+            print("Google Speech Recognition 서비스에서 오류 발생; {0}".format(e))
+
 
 
 def split_text(text, n):
@@ -92,7 +95,7 @@ def tts_threads(text, n=200, delay=0.5):
 # Text To Speech
 def text_to_speech(text):
     file_name = "gtts.mp3"
-    tts = gTTS(text=text, lang='ko')
+    tts = gTTS(text=text, lang='ja')
     tts.save(file_name)
     audio = AudioSegment.from_mp3(mp3_file)
     audio.export(wav_file, format="wav")
@@ -108,20 +111,20 @@ def get_cleaned_text(text):
 
 # 데이터베이스에 존재하는 동화를 읽어주는 함수
 def play_fairy_tale(database_list):
-    text_to_speech("어떤 동화를 들려줄까? 동화 제목만 말해줘.")
+    text_to_speech("どんなおとぎ話を聞かせてくれるかな？ ")
     time.sleep(3)
     try:
         text = speech_to_text()
         text = get_cleaned_text(text)
         for tale_title, tale_content in database_list:
             if tale_title == text:
-                text_to_speech(text + "동화를 들려줄께.")
+                text_to_speech(text + "おとぎ話を聞かせてあげるよ。")
                 text_to_speech(tale_content)
                 break
         else:
-            text_to_speech("그런 동화는 없어.")
+            text_to_speech("そんなおとぎ話はない。")
     except sr.UnknownValueError:
-        text_to_speech("미안해, 내가 듣지 못했어.")
+        text_to_speech("ごめん、聞いてなかった。")
 
 
 def main():
@@ -134,8 +137,8 @@ def main():
                 print("네")
                 pygame.mixer.Sound("start.wav").play()
                 text = speech_to_text()
-                if '동화' in text:
-                    print("동화")
+                if 'おとぎ話' in text:
+                    print("おとぎ話")
                     play_fairy_tale(database_list)
                 elif '유튜브' in text:
                     print("유튜브")
@@ -168,7 +171,7 @@ def main():
 
 if __name__ == "__main__":
     openai.api_key = config.openai_api_key
-    dall_name = "딸기"
+    dall_name = "いちご"
 
     print_audio_info()  # 마이크와 스피커의 정보를 알려주는 함수
     pygame.mixer.init()
