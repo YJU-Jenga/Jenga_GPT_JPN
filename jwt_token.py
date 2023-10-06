@@ -8,7 +8,7 @@ import GPT_Kinou2
 from pydub import AudioSegment
 
 # 알람 정보를 가져올 URL 설정
-url = 'http://ichigo.aster1sk.com:5000/alarm/getAll/1'
+url = 'http://ichigo.aster1sk.com:5000/alarm/getAll/3'
 
 # JWT 토큰 설정
 expires_in = datetime.timedelta(days=365)  # 만료 시간 설정
@@ -69,7 +69,7 @@ def check_alarm(alarms):
             text = alarm['sentence']
             GPT_Kinou2.text_to_speech(text)
             if alarm['file']:
-                url = "http://ichigo.aster1sk.com:5000/" + alarm['file']
+                url = "https://ichigobucket.s3.ap-northeast-2.amazonaws.com/" + alarm['file']
                 save_path = 'alarm.wav'
                 download_and_convert_audio(url, save_path)
                 pygame.mixer.Sound(save_path).play()

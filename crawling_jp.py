@@ -1,39 +1,44 @@
-import os
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 
+# 상대경로를 절대경로로 변환하는 함수
+def convert_to_absolute_url(base_url, relative_path):
+    absolute_path = urljoin(base_url, relative_path)
+    return absolute_path
+
 # 웹 페이지 URL
-url = "https://www.douwa-douyou.jp/contents/html/douwastory/douwastory1_02.shtml"
+url = 'https://www.douwa-douyou.jp/contents/html/douwa/douwa6.shtml'
 
 # 웹 페이지 가져오기
 response = requests.get(url)
 
-if response.status_code == 200:
-    # BeautifulSoup으로 HTML 파싱
-    soup = BeautifulSoup(response.text, "html.parser")
+# 인코딩 설정 (UTF-8)
+response.encoding = 'utf-8'
 
-    # audio 태그 찾기
-    audio_tag = soup.find("audio")
+# BeautifulSoup 객체 생성
+soup = BeautifulSoup(response.text, 'html.parser')
 
-    if audio_tag:
-        # 상대경로 추출
-        relative_path = audio_tag["src"]
+# 모든 테이블 선택
+tables = soup.find_all('table')
 
-        # 절대 URL로 변환
-        absolute_url = urljoin(url, relative_path)
+# 각 테이블에서 모든 <a> 태그 선택
+for table in tables:
+    a_tags = table.find_all('a')
 
-        # MP3 파일 다운로드
-        mp3_response = requests.get(absolute_url)
+    # <a> 태그의 href 속성을 절대경로로 변환하여 출력
+    for a in a_tags:
+        print(a.text)
+        href = a.get('href')
+        absolute_href = convert_to_absolute_url(url, href)
+        print(absolute_href)
 
-        if mp3_response.status_code == 200:
-            # MP3 파일 저장
-            with open("2kasajizou.mp3", "wb") as mp3_file:
-                mp3_file.write(mp3_response.content)
-            print("MP3 파일을 다운로드했습니다.")
-        else:
-            print("MP3 파일을 다운로드하는 중 문제가 발생했습니다.")
-    else:
-        print("audio 태그를 찾을 수 없습니다.")
-else:
-    print("웹 페이지를 가져오는 중 문제가 발생했습니다.")
+        # 절대경로로 접근하여 내용 크롤링
+        response_inner = requests.get(absolute_href)
+        response_inner.encoding = 'utf-8'
+        soup_inner = BeautifulSoup(response_inner.text, 'html.parser')
+
+        # <p> 태그 중 class="story"인 내용 출력
+        story_tags = soup_inner.find_all('p', class_='story')
+        for story_tag in story_tags:
+            print(story_tag.text)
