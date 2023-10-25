@@ -111,18 +111,18 @@ def get_cleaned_text(text):
 
 # 데이터베이스에 존재하는 동화를 읽어주는 함수
 def play_fairy_tale(database_list):
-    text_to_speech("どんなおとぎ話を聞かせてくれるかな？ ")
+    text_to_speech("どんな童話を聞かせてくれるかな？ ")
     time.sleep(3)
     try:
         text = speech_to_text()
         text = get_cleaned_text(text)
         for tale_title, tale_content in database_list:
             if tale_title == text:
-                text_to_speech(text + "おとぎ話を聞かせてあげるよ。")
+                text_to_speech(text + "童話を聞かせてあげるよ。")
                 text_to_speech(tale_content)
                 break
         else:
-            text_to_speech("そんなおとぎ話はない。")
+            text_to_speech("そんな童話はない。")
     except sr.UnknownValueError:
         text_to_speech("ごめん、聞いてなかった。")
 
@@ -137,8 +137,8 @@ def main():
                 print("네")
                 pygame.mixer.Sound("start.wav").play()
                 text = speech_to_text()
-                if 'おとぎ話' in text:
-                    print("おとぎ話")
+                if '童話' in text:
+                    print("童話")
                     play_fairy_tale(database_list)
                 elif '유튜브' in text:
                     print("유튜브")
