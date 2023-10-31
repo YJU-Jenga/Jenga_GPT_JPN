@@ -1,26 +1,22 @@
 import os
-import threading
-
 import openai
 import pyaudio
 import pygame
 import time
 import speech_recognition as sr
-import subprocess
 import pymysql
 import re
-import config
 from pydub import AudioSegment
-
 from gtts import gTTS
-from config import db_config
 
-# 동화 Database 생성
-# subprocess.run(['python', 'crawling.py'])
-
-mp3_file = "gtts.mp3"
-wav_file = "gtts.wav"
-
+# Database 연결 설정
+db_config = {
+    "host": 'localhost',
+    "user": 'jenga',
+    "password": 'your_password',
+    "database": 'jenga',
+    "charset": 'utf8',
+}
 
 # 동화 Database 연결
 def connect_database(config):
@@ -31,8 +27,7 @@ def connect_database(config):
             database_list = cursor.fetchall()
     return database_list
 
-
-# 마이크와 스피커의 정보를 알려주는 함수
+# 마이크와 스피커의 정보 출력
 def print_audio_info():
     audio = pyaudio.PyAudio()
     for i in range(audio.get_device_count()):
@@ -42,8 +37,7 @@ def print_audio_info():
                                                                                      info['maxOutputChannels']))
     audio.terminate()
 
-
-# Speech To Text
+# 음성 인식
 def speech_to_text():
     r = sr.Recognizer()
     with sr.Microphone() as source:
@@ -60,54 +54,30 @@ def speech_to_text():
         except sr.RequestError as e:
             print("Google Speech Recognition 서비스에서 오류 발생; {0}".format(e))
 
-
-
+# 긴 텍스트를 분할
 def split_text(text, n):
-    # 긴 텍스트를 n글자씩 분할하여 리스트로 반환
     return [text[i:i + n] for i in range(0, len(text), n)]
 
-
+# 긴 텍스트를 음성으로 출력
 def tts_threads(text, n=200, delay=0.5):
-    # 긴 텍스트를 n글자씩 분할
     text_list = split_text(text, n)
-
-    # 각각의 분할된 텍스트를 음성으로 변환하고 파일로 저장
-    threads = []
-    for i, t in enumerate(text_list):
-        thread = threading.Thread(target=text_to_speech, args=t)
-        threads.append(thread)
-        thread.start()
+    for t in text_list:
+        text_to_speech(t)
         time.sleep(delay)
-
-    # 모든 쓰레드가 종료될 때까지 대기
-    for thread in threads:
-        thread.join()
-
-    # 저장된 음성 파일을 연속으로 재생
-    for i in range(len(text_list)):
-        file_name = "gtts.mp3"
-        audio = AudioSegment.from_mp3(mp3_file)
-        audio.export(wav_file, format="wav")
-        pygame.mixer.Sound(wav_file).play()
-        os.remove(file_name)
-
 
 # Text To Speech
 def text_to_speech(text):
-    file_name = "gtts.mp3"
     tts = gTTS(text=text, lang='ja')
-    tts.save(file_name)
-    audio = AudioSegment.from_mp3(mp3_file)
-    audio.export(wav_file, format="wav")
-    tts_sound = pygame.mixer.Sound(wav_file)
+    tts.save("gtts.mp3")
+    audio = AudioSegment.from_mp3("gtts.mp3")
+    audio.export("gtts.wav", format="wav")
+    tts_sound = pygame.mixer.Sound("gtts.wav")
     tts_sound.play()
 
-
-# 받은 문자열에서 한글만 추출하고 공백과 특수문자를 제거하는 함
+# 받은 문자열에서 한글만 추출
 def get_cleaned_text(text):
     cleaned_text = re.sub(r"[^가-힣]", "", text)
     return cleaned_text
-
 
 # 데이터베이스에 존재하는 동화를 읽어주는 함수
 def play_fairy_tale(database_list):
@@ -119,19 +89,24 @@ def play_fairy_tale(database_list):
         for tale_title, tale_content in database_list:
             if tale_title == text:
                 text_to_speech(text + "童話を聞かせてあげるよ。")
-                text_to_speech(tale_content)
+                tts_threads(tale_content)
                 break
         else:
             text_to_speech("そんな童話はない。")
     except sr.UnknownValueError:
-        text_to_speech("ごめん、聞いてなかった。")
+        text_to_speech("ごめん、聞いてなかった.")
 
-
+# 메인 함수
 def main():
+    openai.api_key = 'your_openai_api_key'
+    pygame.mixer.init()
+
+    database_list = connect_database(db_config)
+
     while True:
         try:
             text = speech_to_text()
-            if dall_name in text:
+            if "いちご" in text:
                 if pygame.mixer.get_busy():
                     pygame.mixer.stop()
                 print("네")
@@ -140,12 +115,6 @@ def main():
                 if '童話' in text:
                     print("童話")
                     play_fairy_tale(database_list)
-                elif '유튜브' in text:
-                    print("유튜브")
-                    text_to_speech("어떤 영상을 들려줄까?")
-                    time.sleep(1)
-                    subprocess.run(['python3', 'youtube.py'])
-
                 else:
                     print("GPT")
                     response = openai.Completion.create(
@@ -159,7 +128,6 @@ def main():
                     )
                     message = response.choices[0].text.strip()
                     print("message: ", message)
-
                     text_to_speech(message)
         except sr.UnknownValueError:
             print("음성을 인식할 수 없음")
@@ -168,14 +136,7 @@ def main():
         except Exception as e:
             print("음성 명령을 처리하는 동안 오류가 발생; {0}".format(e))
 
-
 if __name__ == "__main__":
-    openai.api_key = config.openai_api_key
+    print_audio_info()
     dall_name = "いちご"
-
-    print_audio_info()  # 마이크와 스피커의 정보를 알려주는 함수
-    pygame.mixer.init()
-
-    database_list = connect_database(db_config)
-
     main()
