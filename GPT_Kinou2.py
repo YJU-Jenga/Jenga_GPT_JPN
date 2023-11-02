@@ -48,17 +48,19 @@ def speech_to_text():
     r = sr.Recognizer()
     with sr.Microphone() as source:
         print("음성 명령을 기다리는 중...")
-        try:
-            audio = r.listen(source)  # 5초 동안 음성을 대기하고 자동으로 종료
-            text = r.recognize_google(audio, language='ja-JP')
-            print("음성 명령: {}".format(text))
-            return text
-        except sr.WaitTimeoutError:
-            print("시간 초과: 음성 입력이 없습니다.")
-        except sr.UnknownValueError:
-            print("음성을 인식할 수 없습니다.")
-        except sr.RequestError as e:
-            print("Google Speech Recognition 서비스에서 오류 발생; {0}".format(e))
+        while True:
+            try:
+                audio = r.listen(source)
+                text = r.recognize_google(audio, language='ja-JP')
+                print("음성 명령: {}".format(text))
+                # 여기에서 음성 명령을 처리하고, 원하는 작업을 수행하세요.
+            except sr.WaitTimeoutError:
+                print("시간 초과: 음성 입력이 없습니다.")
+            except sr.UnknownValueError:
+                print("음성을 인식할 수 없습니다.")
+            except sr.RequestError as e:
+                print("Google Speech Recognition 서비스에서 오류 발생; {0}".format(e))
+
 
 
 
