@@ -49,7 +49,7 @@ def speech_to_text():
     with sr.Microphone() as source:
         print("음성 명령을 기다리는 중...")
         try:
-            audio = r.listen(source)  # 5초 동안 음성을 대기하고 자동으로 종료
+            audio = r.listen(source, timeout=5)  # 5초 동안 음성을 대기하고 자동으로 종료
             text = r.recognize_google(audio, language='ja-JP')
             print("음성 명령: {}".format(text))
             return text
