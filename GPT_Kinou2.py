@@ -161,7 +161,7 @@ def main():
                     message = response.choices[0].text.strip()
                     print("message: ", message)
 
-                    tts_threads(message)
+                    text_to_speech(message)
         except sr.UnknownValueError:
             print("음성을 인식할 수 없음")
         except sr.RequestError as e:
