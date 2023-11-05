@@ -139,25 +139,35 @@ def main():
                 pygame.mixer.stop()
             print("Button On")
             pygame.mixer.Sound("start.wav").play()
-            text = speech_to_text()
-            if '童話' in text:
-                print("童話")
-                play_fairy_tale(database_list)
-            else:
-                print("GPT")
-                response = openai.Completion.create(
-                    model="text-davinci-003",
-                    prompt=text,
-                    temperature=0.9,
-                    max_tokens=2048,
-                    top_p=1,
-                    frequency_penalty=0.0,
-                    presence_penalty=0.6,
-                )
-                message = response.choices[0].text.strip()
-                print("message: ", message)
 
-                text_to_speech(message)
+            # 일정 시간 동안 음성 인식을 시도
+            timeout = time.time() + 10  # 예: 10초 동안 시도
+            text = None
+            while time.time() < timeout:
+                text = speech_to_text()
+                if text:
+                    break  # 음성이 인식되면 루프 탈출
+
+            if text:
+                if '童話' in text:
+                    print("童話")
+                    play_fairy_tale(database_list)
+                else:
+                    print("GPT")
+                    response = openai.Completion.create(
+                        model="text-davinci-003",
+                        prompt=text,
+                        temperature=0.9,
+                        max_tokens=2048,
+                        top_p=1,
+                        frequency_penalty=0.0,
+                        presence_penalty=0.6,
+                    )
+                    message = response.choices[0].text.strip()
+                    print("message: ", message)
+                    text_to_speech(message)
+            else:
+                print("음성 인식 실패. 다시 시도하세요.")
 
 
 if __name__ == "__main__":
