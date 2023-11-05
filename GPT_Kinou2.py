@@ -48,12 +48,16 @@ def print_audio_info():
 
 
 # Speech To Text
-def speech_to_text():
+def continuous_speech_to_text(timeout=5):
     r = sr.Recognizer()
     with sr.Microphone() as source:
         print("음성 명령을 기다리는 중...")
+
+        # 음성 인식을 시작하기 전에 잠시 정지한 후 소음을 기록합니다.
+        r.adjust_for_ambient_noise(source)
+
         try:
-            audio = r.listen(source)  # 5초 동안 음성을 대기하고 자동으로 종료
+            audio = r.listen(source, timeout=timeout)
             text = r.recognize_google(audio, language='ja-JP')
             print("음성 명령: {}".format(text))
             return text
@@ -62,8 +66,7 @@ def speech_to_text():
         except sr.UnknownValueError:
             print("음성을 인식할 수 없습니다.")
         except sr.RequestError as e:
-            print("Google Speech Recognition 서비스에서 오류 발생; {0}".format(e))
-
+            print("Google Speech Recognition 서비스에서 오류 발생: {0}".format(e))
 
 
 def split_text(text, n):
@@ -118,7 +121,7 @@ def play_fairy_tale(database_list):
     text_to_speech("どんな童話を聞かせてくれるかな？ ")
     time.sleep(3)
     try:
-        text = speech_to_text()
+        text = continuous_speech_to_text()
         if text in "桃太郎":
             text = "ももたろう"
         for tale_title, tale_content in database_list:
@@ -145,7 +148,7 @@ def main():
             timeout = time.time() + 5  # 예: 5초 동안 시도
             text = None
             while time.time() < timeout:
-                text = speech_to_text()
+                text = continuous_speech_to_text()
                 if text:
                     break  # 음성이 인식되면 루프 탈출
 
