@@ -22,7 +22,7 @@ def main():
             if text == '':
                 print('질의한 내용이 없습니다.')
             else:
-                print(text)
+                gpt.text_to_speech(text)
         # time.sleep(2)
         else:
             print('KWS Not Dectected ...')
