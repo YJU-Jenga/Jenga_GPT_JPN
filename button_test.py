@@ -1,49 +1,32 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+Example 9: 버튼 음성인식 대화 결합 예제
+"""
+
 from __future__ import print_function
 
-import audioop
-from ctypes import *
-
 import MicrophoneStream as MS
-import RPi.GPIO as GPIO
-import ktkws  # KWS
+import ex1_kwstest as kws
+import ex6_queryVoice as dss
 
-RATE = 16000
-CHUNK = 512
-
-def btn_detect():
-    global btn_status
-    with MS.MicrophoneStream(RATE, CHUNK) as stream:
-        audio_generator = stream.generator()
-
-        for content in audio_generator:
-            GPIO.output(31, GPIO.HIGH)
-            rc = ktkws.detect(content)
-            rms = audioop.rms(content, 2)
-            # print('audio rms = %d' % (rms))
-            GPIO.output(31, GPIO.LOW)
-            if btn_status:
-                rc = 1
-                btn_status = False
-            if rc == 1:
-                GPIO.output(31, GPIO.HIGH)
-                # MS.play_file("../data/sample_sound.wav")
-                return 200
-
-def btn_test():
-    global btn_status
-    rc = ktkws.init("../data/kwsmodel.pack")
-    print('init rc = %d' % rc)
-    rc = ktkws.start()
-    print('start rc = %d' % rc)
-    print('\n버튼을 눌러보세요~\n')
-    rc = btn_detect()
-    print('detect rc = %d' % rc)
-    print('\n\n호출어가 정상적으로 인식되었습니다.\n\n')
-    ktkws.stop()
-    return rc
 
 def main():
-    btn_test()
+    # Example8 Button+STT+DSS
+    KWSID = ['기가지니', '지니야', '친구야', '자기야']
+    while 1:
+        recog = kws.btn_test(KWSID[0])
+        if recog == 200:
+            print('KWS Dectected ...\n Start STT...')
+            text = dss.queryByVoice()
+            if text == '':
+                print('질의한 내용이 없습니다.')
+            else:
+                MS.play_file("result_mesg.wav")
+        # time.sleep(2)
+        else:
+            print('KWS Not Dectected ...')
 
 
 if __name__ == '__main__':
