@@ -164,6 +164,7 @@ def main():
                         presence_penalty=0.6,
                     )
                     message = response.choices[0].text.strip()
+                    print("response: ", response)
                     print("message: ", message)
                     text_to_speech(message)
             else:
