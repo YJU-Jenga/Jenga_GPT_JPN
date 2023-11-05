@@ -29,14 +29,13 @@ def btn_detect():
                 # MS.play_file("../data/sample_sound.wav")
                 return 200
 
-def btn_test(key_word='기가지니'):
+def btn_test():
     global btn_status
     rc = ktkws.init("../data/kwsmodel.pack")
     print('init rc = %d' % rc)
     rc = ktkws.start()
     print('start rc = %d' % rc)
     print('\n버튼을 눌러보세요~\n')
-    ktkws.set_keyword(KWSID.index(key_word))
     rc = btn_detect()
     print('detect rc = %d' % rc)
     print('\n\n호출어가 정상적으로 인식되었습니다.\n\n')
