@@ -116,7 +116,7 @@ def play_fairy_tale(database_list):
 
         if matching_tale:
             text_to_speech(text + "童話を聞かせてあげるよ。")
-            tts_threads(matching_tale)
+            pygame.mixer.Sound("momotarou.mp3").play()
         else:
             text_to_speech("そんな童話はない。")
 
