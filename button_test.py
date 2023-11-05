@@ -10,20 +10,19 @@ from __future__ import print_function
 import MicrophoneStream as MS
 import ex1_kwstest as kws
 import ex6_queryVoice as dss
+import GPT_Kinou2 as gpt
 
 
 def main():
-    # Example8 Button+STT+DSS
-    KWSID = ['기가지니', '지니야', '친구야', '자기야']
     while 1:
-        recog = kws.btn_test(KWSID[0])
+        recog = kws.btn_test()
         if recog == 200:
-            print('KWS Dectected ...\n Start STT...')
-            text = dss.queryByVoice()
+            print('Button On')
+            text = gpt.speech_to_text()
             if text == '':
                 print('질의한 내용이 없습니다.')
             else:
-                MS.play_file("result_mesg.wav")
+                print(text)
         # time.sleep(2)
         else:
             print('KWS Not Dectected ...')
