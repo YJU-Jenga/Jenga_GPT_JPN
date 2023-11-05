@@ -44,7 +44,7 @@ def btn_test(key_word='기가지니'):
     return rc
 
 def main():
-    test()
+    btn_test()
 
 
 if __name__ == '__main__':
