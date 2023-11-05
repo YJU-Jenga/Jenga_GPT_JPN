@@ -141,7 +141,7 @@ def main():
             pygame.mixer.Sound("start.wav").play()
 
             # 일정 시간 동안 음성 인식을 시도
-            timeout = time.time() + 10  # 예: 10초 동안 시도
+            timeout = time.time() + 5  # 예: 5초 동안 시도
             text = None
             while time.time() < timeout:
                 text = speech_to_text()
