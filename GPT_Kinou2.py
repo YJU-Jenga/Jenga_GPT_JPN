@@ -69,34 +69,16 @@ def continuous_speech_to_text(timeout=5):
             print("Google Speech Recognition 서비스에서 오류 발생: {0}".format(e))
 
 
+def tts_threads(text, n=200, delay=0.5):
+    text_list = [text[i:i + n] for i in range(0, len(text), n)]
+
+    for t in text_list:
+        text_to_speech(t)
+        time.sleep(delay)
+
 def split_text(text, n):
     # 긴 텍스트를 n글자씩 분할하여 리스트로 반환
     return [text[i:i + n] for i in range(0, len(text), n)]
-
-
-def tts_threads(text, n=200, delay=0.5):
-    # 긴 텍스트를 n글자씩 분할
-    text_list = split_text(text, n)
-
-    # 각각의 분할된 텍스트를 음성으로 변환하고 파일로 저장
-    threads = []
-    for i, t in enumerate(text_list):
-        thread = threading.Thread(target=text_to_speech, args=t)
-        threads.append(thread)
-        thread.start()
-        time.sleep(delay)
-
-    # 모든 쓰레드가 종료될 때까지 대기
-    for thread in threads:
-        thread.join()
-
-    # 저장된 음성 파일을 연속으로 재생
-    for i in range(len(text_list)):
-        file_name = "gtts.mp3"
-        audio = AudioSegment.from_mp3(mp3_file)
-        audio.export(wav_file, format="wav")
-        pygame.mixer.Sound(wav_file).play()
-        os.remove(file_name)
 
 
 # Text To Speech
