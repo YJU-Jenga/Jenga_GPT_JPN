@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 import threading
 
@@ -10,9 +12,11 @@ import subprocess
 import pymysql
 import re
 import config
+import ex1_kwstest as kws
 from pydub import AudioSegment
 
 from gtts import gTTS
+
 from config import db_config
 
 # 동화 Database 생성
@@ -129,45 +133,31 @@ def play_fairy_tale(database_list):
 
 def main():
     while True:
-        try:
+        recog = kws.btn_test()
+        if recog == 200:
+            if pygame.mixer.get_busy():
+                pygame.mixer.stop()
+            print("Button On")
+            pygame.mixer.Sound("start.wav").play()
             text = speech_to_text()
-            if dall_name in text:
-                if pygame.mixer.get_busy():
-                    pygame.mixer.stop()
-                print("네")
-                pygame.mixer.Sound("start.wav").play()
-                time.sleep(1)
-                text = speech_to_text()
-                if '童話' in text:
-                    print("童話")
-                    play_fairy_tale(database_list)
-                elif '유튜브' in text:
-                    print("유튜브")
-                    text_to_speech("어떤 영상을 들려줄까?")
-                    time.sleep(1)
-                    subprocess.run(['python3', 'youtube.py'])
+            if '童話' in text:
+                print("童話")
+                play_fairy_tale(database_list)
+            else:
+                print("GPT")
+                response = openai.Completion.create(
+                    model="text-davinci-003",
+                    prompt=text,
+                    temperature=0.9,
+                    max_tokens=2048,
+                    top_p=1,
+                    frequency_penalty=0.0,
+                    presence_penalty=0.6,
+                )
+                message = response.choices[0].text.strip()
+                print("message: ", message)
 
-                else:
-                    print("GPT")
-                    response = openai.Completion.create(
-                        model="text-davinci-003",
-                        prompt=text,
-                        temperature=0.9,
-                        max_tokens=2048,
-                        top_p=1,
-                        frequency_penalty=0.0,
-                        presence_penalty=0.6,
-                    )
-                    message = response.choices[0].text.strip()
-                    print("message: ", message)
-
-                    text_to_speech(message)
-        except sr.UnknownValueError:
-            print("음성을 인식할 수 없음")
-        except sr.RequestError as e:
-            print("Google 음성 인식 서비스에서 결과를 요청할 수 없음; {0}".format(e))
-        except Exception as e:
-            print("음성 명령을 처리하는 동안 오류가 발생; {0}".format(e))
+                text_to_speech(message)
 
 
 if __name__ == "__main__":
