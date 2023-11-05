@@ -119,7 +119,8 @@ def play_fairy_tale(database_list):
     time.sleep(3)
     try:
         text = speech_to_text()
-        text = get_cleaned_text(text)
+        if text in "桃太郎":
+            text = "ももたろう"
         for tale_title, tale_content in database_list:
             if tale_title == text:
                 text_to_speech(text + "童話を聞かせてあげるよ。")
