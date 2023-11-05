@@ -150,7 +150,7 @@ def main():
                     break  # 음성이 인식되면 루프 탈출
 
             if text:
-                if '童話' in text:
+                if "童話" in text or "東和" in text:
                     print("童話")
                     play_fairy_tale(database_list)
                 else:
