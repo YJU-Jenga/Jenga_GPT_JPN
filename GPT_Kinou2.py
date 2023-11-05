@@ -120,18 +120,24 @@ def get_cleaned_text(text):
 def play_fairy_tale(database_list):
     text_to_speech("どんな童話を聞かせてくれるかな？ ")
     time.sleep(3)
+
     try:
         text = continuous_speech_to_text()
         print(text)
-        if text in "桃太郎":
+
+        # "桃太郎"가 입력되면 "ももたろう"으로 변환
+        if text == "桃太郎":
             text = "ももたろう"
-        for tale_title, tale_content in database_list:
-            if tale_title == text:
-                text_to_speech(text + "童話を聞かせてあげるよ。")
-                tts_threads(tale_content)
-                break
+
+        # 입력된 텍스트가 database_list에 있는 동화와 일치하는지 확인
+        matching_tale = next((tale_content for tale_title, tale_content in database_list if tale_title == text), None)
+
+        if matching_tale:
+            text_to_speech(text + "童話を聞かせてあげるよ。")
+            tts_threads(matching_tale)
         else:
             text_to_speech("そんな童話はない。")
+
     except sr.UnknownValueError:
         text_to_speech("ごめん、聞いてなかった。")
 
