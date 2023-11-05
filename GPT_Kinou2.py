@@ -122,6 +122,7 @@ def play_fairy_tale(database_list):
     time.sleep(3)
     try:
         text = continuous_speech_to_text()
+        print(text)
         if text in "桃太郎":
             text = "ももたろう"
         for tale_title, tale_content in database_list:
