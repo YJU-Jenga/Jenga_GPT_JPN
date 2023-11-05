@@ -1,33 +1,51 @@
+from __future__ import print_function
+
+import audioop
+from ctypes import *
+
+import MicrophoneStream as MS
 import RPi.GPIO as GPIO
+import ktkws  # KWS
 
-# GPIO 설정
-BUTTON_PIN = 29
-GPIO.setwarnings(False)
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+RATE = 16000
+CHUNK = 512
 
-def button_pressed(channel):
-    print("Button Pressed!")
-    global btn_status
-    btn_status = True
-
-# 버튼 이벤트 핸들러 등록
-GPIO.add_event_detect(BUTTON_PIN, GPIO.FALLING, callback=button_pressed, bouncetime=200)
-
-# 초기 버튼 상태
-btn_status = False
-
-# 버튼을 누를 때 200을 반환하는 함수
 def btn_detect():
     global btn_status
-    if btn_status:
-        btn_status = False  # 버튼 상태 초기화
-        return 200
-    return 0  # 버튼이 눌리지 않았을 때
+    with MS.MicrophoneStream(RATE, CHUNK) as stream:
+        audio_generator = stream.generator()
 
-# 버튼 누를 때 200을 반환하도록 설정
-while True:
-    result = btn_detect()
-    if result == 200:
-        print("Button Pressed: 200 Returned")
-    # 여기에서 다른 코드 또는 동작을 수행할 수 있습니다.
+        for content in audio_generator:
+            GPIO.output(31, GPIO.HIGH)
+            rc = ktkws.detect(content)
+            rms = audioop.rms(content, 2)
+            # print('audio rms = %d' % (rms))
+            GPIO.output(31, GPIO.LOW)
+            if btn_status:
+                rc = 1
+                btn_status = False
+            if rc == 1:
+                GPIO.output(31, GPIO.HIGH)
+                # MS.play_file("../data/sample_sound.wav")
+                return 200
+
+def btn_test(key_word='기가지니'):
+    global btn_status
+    rc = ktkws.init("../data/kwsmodel.pack")
+    print('init rc = %d' % rc)
+    rc = ktkws.start()
+    print('start rc = %d' % rc)
+    print('\n버튼을 눌러보세요~\n')
+    ktkws.set_keyword(KWSID.index(key_word))
+    rc = btn_detect()
+    print('detect rc = %d' % rc)
+    print('\n\n호출어가 정상적으로 인식되었습니다.\n\n')
+    ktkws.stop()
+    return rc
+
+def main():
+    test()
+
+
+if __name__ == '__main__':
+    main()
