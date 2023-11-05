@@ -124,7 +124,7 @@ def play_fairy_tale(database_list):
         for tale_title, tale_content in database_list:
             if tale_title == text:
                 text_to_speech(text + "童話を聞かせてあげるよ。")
-                text_to_speech(tale_content)
+                tts_threads(tale_content)
                 break
         else:
             text_to_speech("そんな童話はない。")
