@@ -1,69 +1,80 @@
 import os
+import threading
+
 import openai
+import pyaudio
+import pygame
+import time
+import speech_recognition as sr
+import subprocess
+import pymysql
+import re
+import config
+from pydub import AudioSegment
 
 from gtts import gTTS
+from config import db_config
 
-import GPT_Kinou2
-
-import pyaudio
-import wave
-import audioop
-
-import config
+mp3_file = "gtts.mp3"
+wav_file = "gtts.wav"
 
 
-def record_audio_with_silence_detection(output_filename, silence_threshold=2000, max_silence_duration=5):
-    # 오디오 설정
-    FORMAT = pyaudio.paInt16  # 오디오 포맷 설정
-    CHANNELS = 1  # 모노 오디오
-    RATE = 44100  # 샘플링 레이트
-    CHUNK = 1024  # 버퍼 사이즈
+# 동화 Database 연결
+def connect_database(config):
+    with pymysql.connect(**config) as db:
+        with db.cursor() as cursor:
+            sql = "SELECT title, detail FROM jenga.book"
+            cursor.execute(sql)
+            database_list = cursor.fetchall()
+    return database_list
 
-    audio = pyaudio.PyAudio()
 
-    # 오디오 입력 스트림 열기
-    stream = audio.open(format=FORMAT, channels=CHANNELS,
-                        rate=RATE, input=True,
-                        frames_per_buffer=CHUNK)
+# Speech To Text
+def speech_to_text():
+    r = sr.Recognizer()
+    with sr.Microphone() as source:
+        print("음성 명령을 기다리는 중...")
+        try:
+            audio = r.listen(source)  # 5초 동안 음성을 대기하고 자동으로 종료
+            text = r.recognize_google(audio, language='ja-JP')
+            print("음성 명령: {}".format(text))
+            return text
+        except sr.WaitTimeoutError:
+            print("시간 초과: 음성 입력이 없습니다.")
+        except sr.UnknownValueError:
+            print("음성을 인식할 수 없습니다.")
+        except sr.RequestError as e:
+            print("Google Speech Recognition 서비스에서 오류 발생; {0}".format(e))
 
-    print("음성 녹음을 시작합니다...")
 
-    frames = []
+def split_text(text, n):
+    # 긴 텍스트를 n글자씩 분할하여 리스트로 반환
+    return [text[i:i + n] for i in range(0, len(text), n)]
 
-    # 오디오 데이터 읽기 및 저장
-    silence_counter = 0  # 연속적인 조용한 프레임 수를 계산하기 위한 카운터
-    for _ in range(0, int(RATE / CHUNK) * max_silence_duration):
-        data = stream.read(CHUNK)
-        frames.append(data)
 
-        # 오디오 데이터에서 에너지 값 계산
-        energy = audioop.rms(data, 2)
+def tts_threads(text, n=200, delay=0.5):
+    # 긴 텍스트를 n글자씩 분할
+    text_list = split_text(text, n)
 
-        # 에너지 값이 일정 임계값 미만이면 조용한 상태로 간주하고 카운터 증가
-        if energy < silence_threshold:
-            silence_counter += 1
-        else:
-            silence_counter = 0
+    # 각각의 분할된 텍스트를 음성으로 변환하고 파일로 저장
+    threads = []
+    for i, t in enumerate(text_list):
+        thread = threading.Thread(target=text_to_speech, args=t)
+        threads.append(thread)
+        thread.start()
+        time.sleep(delay)
 
-        # 연속적인 조용한 프레임이 max_silence_duration 이상이면 녹음 종료
-        if silence_counter > max_silence_duration * (RATE / CHUNK):
-            break
+    # 모든 쓰레드가 종료될 때까지 대기
+    for thread in threads:
+        thread.join()
 
-    print("음성 녹음을 종료합니다.")
-
-    # 오디오 스트림 닫기
-    stream.stop_stream()
-    stream.close()
-    audio.terminate()
-
-    # 오디오 파일로 저장
-    with wave.open(output_filename, 'wb') as wf:
-        wf.setnchannels(CHANNELS)
-        wf.setsampwidth(audio.get_sample_size(FORMAT))
-        wf.setframerate(RATE)
-        wf.writeframes(b''.join(frames))
-
-    print(f"{output_filename} 파일로 저장되었습니다.")
+    # 저장된 음성 파일을 연속으로 재생
+    for i in range(len(text_list)):
+        file_name = "gtts.mp3"
+        audio = AudioSegment.from_mp3(mp3_file)
+        audio.export(wav_file, format="wav")
+        pygame.mixer.Sound(wav_file).play()
+        os.remove(file_name)
 
 
 # Text To Speech
@@ -71,26 +82,23 @@ def text_to_speech(text):
     file_name = "gtts.mp3"
     tts = gTTS(text=text, lang='ja')
     tts.save(file_name)
-    os.system(file_name)
+    audio = AudioSegment.from_mp3(mp3_file)
+    audio.export(wav_file, format="wav")
+    tts_sound = pygame.mixer.Sound(wav_file)
+    tts_sound.play()
 
-
-def transcribe_audio(audio_file_path):
-    with open(audio_file_path, 'rb') as audio_file:
-        transcription = openai.Audio.transcribe("whisper-1", audio_file)
-    return transcription['text']
-
-
-def main():
-    # 녹음 함수 호출 (원하는 파일 이름과 녹음 시간을 설정할 수 있습니다.)
-    record_audio_with_silence_detection("my_audio.wav", silence_threshold=2000, max_silence_duration=5)
-    # Speech To Text
-    audio_file = open("my_audio.wav", "rb")
-    transcript = openai.Audio.transcribe("whisper-1", audio_file)
-    print(transcript)
-
-
-if __name__ == '__main__':
-    openai.api_key = config.openai_api_key
-    # transcribe_audio("gtts.mp3")
-    GPT_Kinou2.print_audio_info()
-    main()
+# 데이터베이스에 존재하는 동화를 읽어주는 함수
+def play_fairy_tale(database_list):
+    text_to_speech("どんな童話を聞かせてくれるかな？ ")
+    time.sleep(3)
+    try:
+        text = speech_to_text()
+        for tale_title, tale_content in database_list:
+            if tale_title == text:
+                text_to_speech(text + "童話を聞かせてあげるよ。")
+                text_to_speech(tale_content)
+                break
+        else:
+            text_to_speech("そんな童話はない。")
+    except sr.UnknownValueError:
+        text_to_speech("ごめん、聞いてなかった。")
