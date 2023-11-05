@@ -1,7 +1,7 @@
 import RPi.GPIO as GPIO
 
 # GPIO 설정
-BUTTON_PIN = 31
+BUTTON_PIN = 29
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
