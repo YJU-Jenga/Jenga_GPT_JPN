@@ -67,7 +67,7 @@ def continuous_speech_to_text(timeout=5):
         print("음성 명령을 기다리는 중...")
 
         # 음성 인식을 시작하기 전에 잠시 정지한 후 소음을 기록합니다.
-        r.adjust_for_ambient_noise(source)
+        # r.adjust_for_ambient_noise(source)
 
         try:
             audio = r.listen(source, timeout=timeout)
