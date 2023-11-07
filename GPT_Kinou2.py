@@ -150,7 +150,7 @@ def main():
                 else:
                     print("GPT")
                     response = openai.Completion.create(
-                        model="gpt-3.5-turbo-1106",
+                        model="gpt-3.5-turbo",
                         prompt=text,
                         temperature=0.9,
                         max_tokens=2048,
