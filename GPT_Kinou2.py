@@ -65,10 +65,6 @@ def continuous_speech_to_text(timeout=5):
     r = sr.Recognizer()
     with sr.Microphone() as source:
         print("음성 명령을 기다리는 중...")
-
-        # 음성 인식을 시작하기 전에 잠시 정지한 후 소음을 기록합니다.
-        # r.adjust_for_ambient_noise(source)
-
         try:
             audio = r.listen(source, timeout=timeout)
             text = r.recognize_google(audio, language='ja-JP')
@@ -80,6 +76,7 @@ def continuous_speech_to_text(timeout=5):
             print("음성을 인식할 수 없습니다.")
         except sr.RequestError as e:
             print("Google Speech Recognition 서비스에서 오류 발생: {0}".format(e))
+
 
 
 def tts_threads(text, n=200, delay=0.5):
@@ -145,13 +142,7 @@ def main():
             print("Button On")
             pygame.mixer.Sound("start.wav").play()
 
-            # 일정 시간 동안 음성 인식을 시도
-            timeout = time.time() + 5  # 예: 5초 동안 시도
-            text = None
-            while time.time() < timeout:
-                text = continuous_speech_to_text()
-                if text:
-                    break  # 음성이 인식되면 루프 탈출
+            text = continuous_speech_to_text()
 
             keywords = ["童話", "東和", "動画", "とは", "とうは", "東亜", "同和", "トーア", "投網"]
             if text:
