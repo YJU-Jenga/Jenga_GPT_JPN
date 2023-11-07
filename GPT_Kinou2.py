@@ -22,6 +22,9 @@ from config import db_config
 # 동화 Database 생성
 # subprocess.run(['python', 'crawling.py'])
 
+# Button Stop
+os.system('/home/pi/blockcoding/kt_ai_makers_kit_block_coding_driver/blockDriver/ButtonStop.sh')
+
 mp3_file = "gtts.mp3"
 wav_file = "gtts.wav"
 
