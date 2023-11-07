@@ -1,5 +1,3 @@
-#!/home/pi/blockcoding/kt_ai_makers_kit_block_coding_driver/blockDriver
-
 from __future__ import print_function
 
 import os
@@ -25,7 +23,7 @@ from config import db_config
 # subprocess.run(['python', 'crawling.py'])
 
 # Button Stop
-os.system('./buttonStop.sh')
+os.system('cd /home/pi/blockcoding/kt_ai_makers_kit_block_coding_driver/blockDriver/ && ./buttonStop.sh')
 
 mp3_file = "gtts.mp3"
 wav_file = "gtts.wav"
