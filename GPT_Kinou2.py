@@ -8,7 +8,6 @@ import pyaudio
 import pygame
 import time
 import speech_recognition as sr
-import subprocess
 import pymysql
 import re
 import config
@@ -23,7 +22,18 @@ from config import db_config
 # subprocess.run(['python', 'crawling.py'])
 
 # Button Stop
-os.system('cd /home/pi/blockcoding/kt_ai_makers_kit_block_coding_driver/blockDriver/ && ./buttonStop.sh')
+import subprocess
+import pexpect
+
+script_path = '/home/pi/blockcoding/kt_ai_makers_kit_block_coding_driver/blockDriver/buttonStop.sh'
+
+# 스크립트 실행
+process = subprocess.Popen([script_path], stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+
+# 엔터 키를 눌러 스크립트 종료
+process.communicate(input=b'\n')
+
+
 
 mp3_file = "gtts.mp3"
 wav_file = "gtts.wav"
