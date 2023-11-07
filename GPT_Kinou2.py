@@ -153,8 +153,9 @@ def main():
                 if text:
                     break  # 음성이 인식되면 루프 탈출
 
+            keywords = ["童話", "東和", "動画", "とは", "とうは", "東亜", "同和", "トーア", "投網"]
             if text:
-                if "童話" in text or "東和" in text or "動画" in text or "とは" in text or "とうは" in text or "東亜" in text:
+                if any(keyword in text for keyword in keywords):
                     print("童話")
                     play_fairy_tale(database_list)
                 else:
