@@ -154,7 +154,7 @@ def main():
                         messages=[{"role": "system", "content": "You are a helpful assistant."},
                                   {"role": "user", "content": text}],
                     )
-                    message = response.choices[0].text.strip()
+                    message = response.choices[0].message['content'].strip()
                     print("response: ", response)
                     print("message: ", message)
                     text_to_speech(message)
