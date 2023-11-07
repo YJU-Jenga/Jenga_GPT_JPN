@@ -24,7 +24,7 @@ from config import db_config
 
 # Button Stop
 os.system('cd /home/pi/blockcoding/kt_ai_makers_kit_block_coding_driver/blockDriver/')
-os.system('sh buttonStop.sh')
+os.system('./buttonStop.sh')
 
 mp3_file = "gtts.mp3"
 wav_file = "gtts.wav"
