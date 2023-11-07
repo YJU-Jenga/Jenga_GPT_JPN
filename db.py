@@ -1,18 +1,6 @@
 import pymysql
 import config
 
-
-def connect_to_database():
-    db = pymysql.Connect(
-        host='localhost',
-        user='jenga',
-        password=config.database_password,
-        database='jenga',
-        charset='utf8',
-    )
-    return db
-
-
 db = pymysql.Connect(
     host='localhost',
     user='jenga',
@@ -22,6 +10,7 @@ db = pymysql.Connect(
 )
 
 cursor = db.cursor()
+
 create_table_query = """
 CREATE TABLE book (
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
